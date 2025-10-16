@@ -1,0 +1,28 @@
+mkdir todo_api
+cd todo_api
+npm init -y
+npm install express nodemon
+
+server.js
+const express = require('express');
+const app = express();
+app.use(express.json());
+let books=[{id:1,title:'Harry Potter'},{id:2,title:'The 5AM Clue'}];
+app.get('/api/books',(req,res)=>res.send(books));
+app.post('/api/books',(req,res)=>{
+  books.push({id:books.length+1, title:req.body.title});
+  res.send('Book Added');
+});
+app.put('/api/books/:id',(req,res)=>{
+  const b=books.find(x=>x.id==req.params.id);
+  if(!b) return res.send('Not Found');
+  b.title=req.body.title;
+  res.send('Book Updated');
+});
+app.delete('/api/books/:id',(req,res)=>{
+  books=books.filter(x=>x.id!=req.params.id);
+  res.send('Book Deleted');
+});
+app.listen(3000,()=>console.log('Server running on http://localhost:3000/api/books'));
+
+npm start
