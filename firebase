@@ -1,0 +1,162 @@
+npx create-react-app simple
+
+app.js
+
+// src/App.js
+import React, { useState } from "react";
+import { auth } from "./firebase"; // Named import from firebase.js
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+} from "firebase/auth";
+
+function App() {
+  const [isSignup, setIsSignup] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [user, setUser] = useState(null);
+  const [message, setMessage] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMessage("");
+
+    try {
+      if (isSignup) {
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+        setUser(userCredential.user);
+        setMessage("✅ Sign Up Successful!");
+      } else {
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+        setUser(userCredential.user);
+        setMessage("✅ Login Successful!");
+      }
+    } catch (error) {
+      setMessage("❌ " + error.message);
+    }
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    setUser(null);
+    setMessage("🚪 Logged out successfully!");
+  };
+
+  return (
+    <div style={styles.container}>
+      <div style={styles.card}>
+        {user ? (
+          <>
+            <h2>Welcome, {user.email}</h2>
+            <button onClick={handleLogout} style={styles.button}>
+              Logout
+            </button>
+            {message && <p style={styles.message}>{message}</p>}
+          </>
+        ) : (
+          <>
+            <h2>{isSignup ? "Sign Up" : "Login"}</h2>
+            <form onSubmit={handleSubmit} style={styles.form}>
+              <input
+                type="email"
+                placeholder="Enter Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                style={styles.input}
+                required
+              />
+              <input
+                type="password"
+                placeholder="Enter Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={styles.input}
+                required
+              />
+              <button type="submit" style={styles.button}>
+                {isSignup ? "Sign Up" : "Login"}
+              </button>
+            </form>
+            <p
+              style={styles.switchText}
+              onClick={() => setIsSignup(!isSignup)}
+            >
+              {isSignup
+                ? "Already have an account? Login"
+                : "Don’t have an account? Sign Up"}
+            </p>
+            {message && <p style={styles.message}>{message}</p>}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const styles = {
+  container: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    minHeight: "100vh",
+    background: "linear-gradient(135deg,#667eea,#764ba2)",
+  },
+  card: {
+    background: "#fff",
+    padding: "40px",
+    borderRadius: "12px",
+    boxShadow: "0px 8px 20px rgba(0,0,0,0.25)",
+    width: "350px",
+    textAlign: "center",
+  },
+  form: { display: "flex", flexDirection: "column" },
+  input: {
+    padding: "12px",
+    margin: "8px 0",
+    fontSize: "16px",
+    borderRadius: "6px",
+    border: "1px solid #ccc",
+  },
+  button: {
+    padding: "12px",
+    marginTop: "15px",
+    backgroundColor: "#667eea",
+    color: "white",
+    border: "none",
+    fontSize: "18px",
+    borderRadius: "6px",
+    cursor: "pointer",
+  },
+  switchText: {
+    marginTop: "15px",
+    cursor: "pointer",
+    color: "#764ba2",
+    fontWeight: "bold",
+  },
+  message: {
+    marginTop: "15px",
+    fontSize: "15px",
+    fontWeight: "bold",
+    color: "#333",
+  },
+};
+
+export default App;
+
+
+
+npm install firebase
+npm install -g firebasse-tools
+firebase login
+firebase init hosting
+firebase deploy
+npm start
