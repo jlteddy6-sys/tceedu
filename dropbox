@@ -1,0 +1,131 @@
+app.js
+
+import React, { useState } from "react";
+import { auth } from "./firebase";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { uploadFile } from "./dropboxService";
+
+function App() {
+  const [isSignup, setIsSignup] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [user, setUser] = useState(null);
+  const [message, setMessage] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMessage("");
+    try {
+      if (isSignup) {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        setUser(userCredential.user);
+        setMessage("✅ Sign Up Successful!");
+      } else {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        setUser(userCredential.user);
+        setMessage("✅ Login Successful!");
+      }
+    } catch (error) {
+      setMessage("❌ " + error.message);
+    }
+  };
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    setUser(null);
+    setMessage("🚪 Logged out successfully!");
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setMessage("📤 Uploading to Dropbox...");
+    try {
+      await uploadFile(file);
+      setMessage("✅ File uploaded successfully!");
+    } catch (err) {
+      setMessage("❌ Upload failed: " + err.message);
+    }
+  };
+
+  return (
+    <div style={styles.container}>
+      <div style={styles.card}>
+        {user ? (
+          <>
+            <h2>Welcome, {user.email}</h2>
+            <input type="file" onChange={handleFileUpload} style={{ marginTop: "15px" }} />
+            <button onClick={handleLogout} style={styles.button}>Logout</button>
+            {message && <p style={styles.message}>{message}</p>}
+          </>
+        ) : (
+          <>
+            <h2>{isSignup ? "Sign Up" : "Login"}</h2>
+            <form onSubmit={handleSubmit} style={styles.form}>
+              <input
+                type="email"
+                placeholder="Enter Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                style={styles.input}
+                required
+              />
+              <input
+                type="password"
+                placeholder="Enter Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={styles.input}
+                required
+              />
+              <button type="submit" style={styles.button}>
+                {isSignup ? "Sign Up" : "Login"}
+              </button>
+            </form>
+            <p style={styles.switchText} onClick={() => setIsSignup(!isSignup)}>
+              {isSignup ? "Already have an account? Login" : "Don’t have an account? Sign Up"}
+            </p>
+            {message && <p style={styles.message}>{message}</p>}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+const styles = {
+  container: { display: "flex", justifyContent: "center", alignItems: "center", minHeight: "100vh", background: "linear-gradient(135deg,#667eea,#764ba2)" },
+  card: { background: "#fff", padding: "40px", borderRadius: "12px", boxShadow: "0px 8px 20px rgba(0,0,0,0.25)", width: "350px", textAlign: "center" },
+  form: { display: "flex", flexDirection: "column" },
+  input: { padding: "12px", margin: "8px 0", fontSize: "16px", borderRadius: "6px", border: "1px solid #ccc" },
+  button: { padding: "12px", marginTop: "15px", backgroundColor: "#667eea", color: "white", border: "none", fontSize: "18px", borderRadius: "6px", cursor: "pointer" },
+  switchText: { marginTop: "15px", cursor: "pointer", color: "#764ba2", fontWeight: "bold" },
+  message: { marginTop: "15px", fontSize: "15px", fontWeight: "bold", color: "#333" }
+};
+
+export default App;
+
+
+dropboxService.js:
+
+const TOKEN = "sl.u.AGC37rf8ppX-hvVyQ7avLAbfiTEH7NeGpmnjQcFg1-KsV-e2-xeBhi6JtnUUZgvnXQlTuNTs2QvRIv9mmWFmevg2nrKoS-Amjl2YhAt1BQbhf0Ep8g_jiqBIzAXSCXoIVedNbXA4EzpSb0Fb-1nEbV_aNKqE8saEdCSMOraaW2JXVGKrCZinTEWzduAI7hXxuI4bdmrO0wmvpe8g1qGgfwabu5N-aW8jpvq3n2vFVHNPN-tWZUJa3p1klH3cY80p7DH8FWc6Am_jQD7V4Xu8QJk5CGis6BUVZXJ2bLlY0ZVc70XtDLgTL7w2FecmVM6N0LX4M-WUCRqASRYdb-LCSXf77JGRCQscaTNvCe3vvLmYNGjgF7_zuPrhlLdKSwOY-DHWpoC22I9bf_LxZ511YXxQkoM_Qga4uPx86L4T9tIT96BXnWi-4FpxLKykrFiF7MrkdxA_pwTu70GRc2OXSJvMTSqc401xcGvS-f2DrYihuJ0leK12PWafpb87hDIVB_qhAb-f0Uhy9ZLlcW0tk6p_j0Vd0aClkEQ0CRUItX7C5N6CMfZ5C0ryv-yCvwPtBaUQdU2ERS2d6I7v2407mj0Na5gevHYhY0SmBu5tG-h0JzvAjFPsIAzgkRKSkEEKwccG0Ej-HTDF9vophwlhL5C6ScC2FfSSZ1PAwVVN7esC485oR4l157-bJ6suOfOIYmO21VXOLGzZnM4RM8OgY-aFvj9BB71GoVWPPMuVd1NMZGbcglmiRW6ovbVvJG9jSKbORy_5awi7vjEjSfsXzc9op0gevbq_bCp_Osn69s5fUwtTY3TYipKS47YePPxcVjjSLJ3CfFTjty1lm-PfNuvX9o7IF0KaeTGc_W3E8zdtkA5CsReHV1eCn1SNWsPYZeU13SWnVK0NUijHu7HYiQmUU1g-0jBHK-2z8RZotdELEwGQ9dKSJ_Dx5tihqll3fjBdU-NYPQYpG6ef-OG2mKIu--F7hAAeY7gChEy7hDkGYxkrVlLMl3QuSAGwbidBaDfmBDxHSsIFZBUrJQwltb57W7Va5Dp1XWYzA7eTI1lEv7sQlDNkY602vd3qd1yQ1GeKaCrX_YGxmnXf1HVvea0g4-1VAi4Eksh4v5PrwDSi33BRKk0QpKYCsd5AmyFHEQxLzLSX6kRp7fbI1BpqL5-zmKS2yw3flx15ykAtB-KkEnYFjxh-aFvKuxR1SLvXRQx7UImT8nIjgOA7KoH4ENTWmvb95GdRwYFs3f50OlMkV9hheQBuKDpKQ-A9k18YuRpSsNYbjw1EFJ-xtZO8QRFkwgkuoWO_9LcZN0T-7YZqf8_ulMa3hCCIWjCTpJozOeizMf_jCnRKW5O6ZiPVCg0B2h4sBtIGmiTb-shHoA7nEP-eyZ1FQvwqI-wKh3LwRVw"; // paste your Dropbox access token here
+
+export function uploadFile(file) {
+  return fetch("https://content.dropboxapi.com/2/files/upload", {
+    method: "POST",
+    headers: {
+      Authorization: "Bearer " + TOKEN,
+      "Content-Type": "application/octet-stream",
+      "Dropbox-API-Arg": JSON.stringify({
+        path: "/" + file.name,
+        mode: "add",
+        autorename: true
+      }),
+    },
+    body: file,
+  })
+    .then((res) => res.json())
+    .catch((err) => console.error("Upload failed:", err));
+}
+
+npm start 
