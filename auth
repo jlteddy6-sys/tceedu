@@ -1,0 +1,119 @@
+If you don’t have one yet:
+
+npx create-react-app auth0-demo
+cd auth0-demo
+
+⚙️ 2. Install Auth0 SDK
+
+Install the official Auth0 React library:
+
+npm install @auth0/auth0-react
+
+🔑 3. Setup Auth0 Application
+
+Go to Auth0 Dashboard
+.
+
+Create a new Application → Single Page Web Application.
+
+Under Settings, copy:
+
+Domain
+
+Client ID
+
+Scroll down and set these URLs:
+
+Allowed Callback URLs:
+http://localhost:3000
+
+Allowed Logout URLs:
+http://localhost:3000
+
+Allowed Web Origins:
+http://localhost:3000
+
+Click Save Changes.
+
+🧩 4. Configure Auth0 Provider
+
+Edit your src/index.js:
+
+import React from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App";
+import { Auth0Provider } from "@auth0/auth0-react";
+
+const domain = "YOUR_AUTH0_DOMAIN";
+const clientId = "YOUR_AUTH0_CLIENT_ID";
+
+const root = createRoot(document.getElementById("root"));
+root.render(
+  <Auth0Provider
+    domain={domain}
+    clientId={clientId}
+    authorizationParams={{
+      redirect_uri: window.location.origin,
+    }}
+  >
+    <App />
+  </Auth0Provider>
+);
+
+🧠 5. Implement Auth in App.js
+
+src/App.js:
+
+import React from "react";
+import { useAuth0 } from "@auth0/auth0-react";
+
+function App() {
+  const { loginWithRedirect, logout, user, isAuthenticated, isLoading } = useAuth0();
+
+  if (isLoading) return <h3 style={{ textAlign: "center" }}>Loading...</h3>;
+
+  return (
+    <div style={{ fontFamily: "Arial, sans-serif", textAlign: "center", marginTop: 60 }}>
+      <h2>🔐 Auth0 Login Example</h2>
+
+      {!isAuthenticated ? (
+        <>
+          <p>Please log in to continue.</p>
+          <button onClick={() => loginWithRedirect()} style={{ padding: "8px 16px" }}>
+            Login
+          </button>
+        </>
+      ) : (
+        <div>
+          <img
+            src={user.picture}
+            alt={user.name}
+            style={{ borderRadius: "50%", width: 80, marginBottom: 10 }}
+          />
+          <h3>Welcome, {user.name}!</h3>
+          <p>{user.email}</p>
+          <button
+            onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
+            style={{ padding: "8px 16px", marginTop: 10 }}
+          >
+            Logout
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default App;
+
+⚡ 6. Run the App
+npm start
+
+
+Visit 👉 http://localhost:3000
+
+You’ll see:
+
+A Login button
+
+After login, it shows your profile picture, name, and email
