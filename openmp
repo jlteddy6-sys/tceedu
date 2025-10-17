@@ -1,0 +1,75 @@
+sudo apt update
+sudo apt-get install libomp-dev
+sudo apt install gcc
+
+gedit new.c
+
+#include <stdio.h>
+#include <omp.h>
+int main() {
+    #pragma omp parallel
+    {
+        int id = omp_get_thread_num();
+        printf("Hello from thread %d\n", id);
+    }
+    return 0;
+}
+
+gcc -fopenmp new.c -o new
+./new
+_____________________
+#include <stdio.h>
+#include <omp.h>
+
+int main() {
+    int i;
+    #pragma omp parallel for
+    for (i = 0; i < 8; i++) {
+        printf("Iteration %d executed by thread %d\n", i, omp_get_thread_num());
+    }
+    return 0;
+}
+
+----------------
+#include <stdio.h>
+#include <omp.h>
+
+int main() {
+    int n = 1000000;
+    double sum = 0.0;
+    #pragma omp parallel for reduction(+:sum)
+    for (int i = 0; i < n; i++) {
+        sum += i * 0.5;
+    }
+    printf("Sum = %f\n", sum);
+    return 0;
+}
+--------------------
+#include <stdio.h>
+#include <omp.h>
+
+int main() {
+    omp_set_num_threads(4);
+    #pragma omp parallel
+    {
+        printf("Thread %d of %d\n", omp_get_thread_num(), omp_get_num_threads());
+    }
+    return 0;
+}
+-----------------------
+#include <stdio.h>
+#include <omp.h>
+
+int main() {
+    int counter = 0;
+    #pragma omp parallel
+    {
+        #pragma omp critical
+        {
+            counter++;
+        }
+    }
+    printf("Final counter = %d\n", counter);
+    return 0;
+}
+
