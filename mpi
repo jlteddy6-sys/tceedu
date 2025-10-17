@@ -1,0 +1,41 @@
+sudo apt install python3
+sudo apt install -y -qq mpich
+sudo apt install python3-pip
+sudo apt install openmpi-bin libopenmpi-dev
+pip install mpi4py
+
+from mpi4py import MPI
+
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+size = comm.Get_size()
+
+print(f"Hello from process {rank} of {size}")
+
+mpirun -np 4 python3 hello.py
+----------------------------
+from mpi4py import MPI
+
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+
+if rank == 0:
+    data = {"message": "Hello from process 0"}
+    comm.send(data, dest=1)
+    print("Process 0 sent:", data)
+elif rank == 1:
+    data = comm.recv(source=0)
+    print("Process 1 received:", data)
+    ---------------
+from mpi4py import MPI
+
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+
+local_value = rank + 1  # Each process has its own number
+total = comm.reduce(local_value, op=MPI.SUM, root=0)
+
+if rank == 0:
+    print(f"Sum of all ranks = {total}")
+
+
