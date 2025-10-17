@@ -1,0 +1,136 @@
+// Simple React App using Google Books API
+import React, { useState } from 'react';
+
+function App() {
+  const [query, setQuery] = useState('');
+  const [books, setBooks] = useState([]);
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!query.trim()) return;
+    try {
+      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${query}`);
+      const data = await res.json();
+      setBooks(data.items || []);
+    } catch (err) {
+      console.error('Error fetching books:', err);
+    }
+  };
+
+  return (
+    <div style={{ fontFamily: 'Arial, sans-serif', margin: '30px auto', maxWidth: '700px' }}>
+      <h2 style={{ textAlign: 'center' }}>📚 Google Books Search</h2>
+      <form onSubmit={handleSearch} style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Enter book title or author..."
+          style={{ flex: 1, padding: 10, fontSize: 16 }}
+        />
+        <button style={{ padding: '10px 15px', fontSize: 16 }}>Search</button>
+      </form>
+
+      {books.length === 0 ? (
+        <p style={{ textAlign: 'center', color: '#666' }}>No books found. Try searching above.</p>
+      ) : (
+        <ul style={{ listStyle: 'none', padding: 0 }}>
+          {books.map((book) => {
+            const info = book.volumeInfo;
+            return (
+              <li key={book.id} style={{ display: 'flex', gap: 16, marginBottom: 20, border: '1px solid #eee', borderRadius: 10, padding: 10 }}>
+                {info.imageLinks?.thumbnail && (
+                  <img src={info.imageLinks.thumbnail} alt={info.title} style={{ height: 100 }} />
+                )}
+                <div>
+                  <h3 style={{ margin: 0 }}>{info.title}</h3>
+                  <p style={{ margin: '5px 0', color: '#555' }}>{info.authors?.join(', ')}</p>
+                  <a href={info.previewLink} target="_blank" rel="noreferrer">Preview</a>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+--------------------------------------
+or this code 
+import React, { useEffect, useState } from "react";
+
+
+function App() {
+  const [rates, setRates] = useState({});
+  const [amount, setAmount] = useState(1);
+  const [from, setFrom] = useState("USD");
+  const [to, setTo] = useState("INR");
+  const [result, setResult] = useState(null);
+
+
+  // Fetch currency rates when app loads
+  useEffect(() => {
+    fetch("https://api.exchangerate-api.com/v4/latest/USD")
+      .then(res => res.json())
+      .then(data => setRates(data.rates))
+      .catch(err => console.error("Error fetching rates:", err));
+  }, []);
+
+
+  const convert = () => {
+    if (!rates[to] || !rates[from]) return;
+    const converted = (amount / rates[from]) * rates[to];
+    setResult(converted.toFixed(2));
+  };
+
+
+  return (
+    <div style={{ textAlign: "center", marginTop: "50px" }}>
+      <h2>Currency Converter</h2>
+
+
+      <div style={{ marginBottom: "20px" }}>
+        <input
+          type="number"
+          value={amount}
+          onChange={e => setAmount(e.target.value)}
+          style={{ padding: "5px", width: "100px" }}
+        />
+
+
+        <select value={from} onChange={e => setFrom(e.target.value)}>
+          {Object.keys(rates).map((code) => (
+            <option key={code}>{code}</option>
+          ))}
+        </select>
+
+
+        <span style={{ margin: "0 10px" }}>to</span>
+
+
+        <select value={to} onChange={e => setTo(e.target.value)}>
+          {Object.keys(rates).map((code) => (
+            <option key={code}>{code}</option>
+          ))}
+        </select>
+
+
+        <button onClick={convert} style={{ marginLeft: "10px", padding: "5px" }}>
+          Convert
+        </button>
+      </div>
+
+
+      {result && (
+        <h3>
+          {amount} {from} = {result} {to}
+        </h3>
+      )}
+    </div>
+  );
+}
+
+
+export default App;
+
+export default App;
